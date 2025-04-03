@@ -15,6 +15,7 @@ canvas[-100:-50, -50:] = (255, 0, 0)
 canvas[-150:-100, -50:] = (0, 255, 0)
 canvas[-200:-150, -50:] = (0, 0, 255)
 canvas[-250:-200, -50:] = (0, 0, 0)
+cv2.rectangle(canvas, (canvas_width-50, canvas_height-250),(canvas_width, canvas_height), (0,0,0), 1)
 startpt = (0,0)
 endpt = (0,0)
 color = (255,0,0)
@@ -116,6 +117,7 @@ while True:
         canvas[-150:-100, -50:] = (0, 255, 0)
         canvas[-200:-150, -50:] = (0, 0, 255)
         canvas[-250:-200, -50:] = (0, 0, 0)
+        cv2.rectangle(canvas, (canvas_width - 50, canvas_height - 250), (canvas_width, canvas_height), (0, 0, 0), 1)
     if ch & 0xFF == ord('s'):
         while True:
             try:
