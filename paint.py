@@ -2,10 +2,12 @@ import numpy as np
 import cv2
 import tensorflow as tf
 from tensorflow.keras.datasets import mnist
+from keras.models import model_from_json
 import matplotlib.pyplot as plt
 import math
 import os
 import string
+from pathlib import Path
 
 # Global variables
 canvas_height, canvas_width = 800, 800
@@ -69,33 +71,18 @@ cv2.setMouseCallback("canvas", click)
 
 ############ DNN module for digit recognition
 
-checkpoint_path = "check_pt_emnist.weights.h5"
+checkpoint_path = "check_pt_emnist_re.weights.h5"
 
-model_cnn = tf.keras.Sequential([
-    tf.keras.layers.Conv2D(64, (3,3), padding = "SAME", activation='relu', input_shape=(28, 28, 1)),
-    tf.keras.layers.MaxPooling2D(2, 2),
-    
-    tf.keras.layers.Conv2D(128, (3,3), padding = "SAME", activation='relu'),
-    tf.keras.layers.MaxPooling2D(2,2),
-    
-    tf.keras.layers.Conv2D(256, (3,3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2,2),
-    
-    tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(512, activation='relu'),
-    tf.keras.layers.Dropout(0.5),  # Helps prevent overfitting
-    tf.keras.layers.Dense(47, activation='softmax')  # 47 classes
-])
+# Load the json file that contains the model's structure
+f = Path("model_structure.json")
+model_structure = f.read_text()
 
+# Recreate the Keras model object from the json data
+model_cnn = model_from_json(model_structure)
 
-model_cnn.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
-                  loss='sparse_categorical_crossentropy',
-                  metrics=['accuracy'])
-
+# Re-load the model's trained weights
 model_cnn.load_weights(checkpoint_path)
 
-probability_model = tf.keras.Sequential([model_cnn,
-                                        tf.keras.layers.ReLU()])
 # EMNIST Balanced Mapping: Digits + Uppercase + Some Lowercase
 emnist_labels = list(string.digits + string.ascii_uppercase + string.ascii_lowercase)  # 47 characters
 #print(emnist_labels)
@@ -132,14 +119,12 @@ while True:
         #cv2.imwrite("test.jpg", img_resize)
         img_resize = np.expand_dims(img_resize, axis=0)  # Add batch dimension
         img_resize = np.expand_dims(img_resize, axis=-1)  # Add channel dimension
-        prediction = probability_model.predict(img_resize)
+        prediction = model_cnn.predict(img_resize)
         index = np.where(prediction[:] > threshold)
         #print(prediction)
-        label_number = index[1][0]
-        print(get_character(label_number))
-        #print(prediction.shape)
-        #print(index[1][0])
-        
+        label_number = index[1]
+        print(get_character(label_number[0]))
+
     if ch & 0xFF == ord('q'):
         break
 	
